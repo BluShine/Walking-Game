@@ -10,7 +10,6 @@ public class WalkingController : MonoBehaviour {
     public FootController foot;
     Rigidbody footBody;
     MoveBodyToTarget footPID;
-    MeshRenderer footMesh;
     float footRotation = 0;
     float footAngularVel = 0;
 
@@ -28,6 +27,7 @@ public class WalkingController : MonoBehaviour {
 
     public Transform shoePreview;
     public Transform invalidShoe;
+    public Transform footMesh;
     MeshRenderer previewMesh;
     MeshRenderer invalidMesh;
 
@@ -51,7 +51,6 @@ public class WalkingController : MonoBehaviour {
         bodyPID = GetComponent<MoveBodyToTarget>();
         footPID = foot.transform.GetComponent<MoveBodyToTarget>();
         footBody = foot.GetComponent<Rigidbody>();
-        footMesh = foot.GetComponentInChildren<MeshRenderer>();
         previewMesh = shoePreview.GetComponent<MeshRenderer>();
         previewMesh.enabled = false;
         invalidMesh = invalidShoe.GetComponent<MeshRenderer>();
@@ -68,9 +67,9 @@ public class WalkingController : MonoBehaviour {
         //foot animation
         float cameraRot = cameraTransform.rotation.eulerAngles.y;
         footRotation = Mathf.SmoothDampAngle(footRotation, cameraRot, ref footAngularVel, .3f, 360, Time.deltaTime);
-        footMesh.transform.rotation = Quaternion.Euler(0, footRotation, 0);
-        invalidMesh.transform.rotation = footMesh.transform.rotation;
-        previewMesh.transform.rotation = footMesh.transform.rotation;
+        footMesh.rotation = Quaternion.Euler(0, footRotation, 0);
+        invalidMesh.transform.rotation = footMesh.rotation;
+        previewMesh.transform.rotation = footMesh.rotation;
 	}
 
     private void FixedUpdate()
