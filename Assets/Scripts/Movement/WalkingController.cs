@@ -10,6 +10,9 @@ public class WalkingController : MonoBehaviour {
     public FootController foot;
     Rigidbody footBody;
     MoveBodyToTarget footPID;
+    MeshRenderer footMesh;
+    float footRotation = 0;
+    float footAngularVel = 0;
 
     public float gravity = 10f;
 
@@ -48,6 +51,7 @@ public class WalkingController : MonoBehaviour {
         bodyPID = GetComponent<MoveBodyToTarget>();
         footPID = foot.transform.GetComponent<MoveBodyToTarget>();
         footBody = foot.GetComponent<Rigidbody>();
+        footMesh = foot.GetComponentInChildren<MeshRenderer>();
         previewMesh = shoePreview.GetComponent<MeshRenderer>();
         previewMesh.enabled = false;
         invalidMesh = invalidShoe.GetComponent<MeshRenderer>();
@@ -57,21 +61,33 @@ public class WalkingController : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
+        //input handling has to be done in Update, so that we don't miss release and press events.
         footUp = footUp || Input.GetButtonUp(FOOTBUTTON);
         footDown = footDown || Input.GetButtonDown(FOOTBUTTON);
-        //Debug.Log(footUp);
+
+        //foot animation
+        float cameraRot = cameraTransform.rotation.eulerAngles.y;
+        footRotation = Mathf.SmoothDampAngle(footRotation, cameraRot, ref footAngularVel, .3f, 360, Time.deltaTime);
+        footMesh.transform.rotation = Quaternion.Euler(0, footRotation, 0);
+        invalidMesh.transform.rotation = footMesh.transform.rotation;
+        previewMesh.transform.rotation = footMesh.transform.rotation;
 	}
 
     private void FixedUpdate()
     {
         //input handling
-        Vector3 inputVector = new Vector3(Input.GetAxis(XAXIS), 0, Input.GetAxis(YAXIS)) * leanAmount;
+        Vector3 inputVector = new Vector3(Input.GetAxis(XAXIS), 0, Input.GetAxis(YAXIS));
+        if(inputVector.magnitude > 1)
+        {
+            inputVector.Normalize();
+        }
+        inputVector *= leanAmount;
         inputVector = Quaternion.Euler(0, cameraTransform.rotation.eulerAngles.y, 0) * inputVector;
 
         //foot movement
         if(footDown && foot.isOnGround())
         {
-            body.AddForce((body.position - footBody.position).normalized * Mathf.Max(0, kickForce - footBody.velocity.magnitude), ForceMode.VelocityChange);
+            body.AddForce((body.position - footBody.position).normalized * Mathf.Max(0, kickForce - footBody.velocity.y), ForceMode.VelocityChange);
             footBody.AddForce((body.position - footBody.position).normalized * liftForce, ForceMode.VelocityChange);
         }
         if (footUp)
@@ -96,7 +112,7 @@ public class WalkingController : MonoBehaviour {
                 stepTimer = footStepTime + 1;
                 footPID.pidEnabled = false;
             }
-            body.AddForce(Vector3.down * gravity, ForceMode.Acceleration);
+            //body.AddForce(Vector3.down * gravity, ForceMode.Acceleration);
         }
         else if (Input.GetButton(FOOTBUTTON))
         {
@@ -128,7 +144,7 @@ public class WalkingController : MonoBehaviour {
             //footPID.pidEnabled = true;
             //footPID.targetPos = transform.position + footRestPosition;
             stepTimer = 0;
-            body.AddForce(Vector3.down * gravity, ForceMode.Acceleration);
+            //body.AddForce(Vector3.down * gravity, ForceMode.Acceleration);
         }
         else
         {
@@ -155,7 +171,7 @@ public class WalkingController : MonoBehaviour {
         }
 
         //gravity
-        //body.AddForce(Vector3.down * gravity, ForceMode.Acceleration);
+        body.AddForce(Vector3.down * gravity, ForceMode.Acceleration);
 
         footDown = false;
         footUp = false;
