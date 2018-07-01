@@ -6,7 +6,7 @@ using UnityEngine;
 public class MoveBodyToTarget : MonoBehaviour {
 
     public Rigidbody body;
-    public float maxForce = 100;
+    public Vector3 maxForce = Vector3.one;
     public Vector3 targetPos = Vector3.zero;
 
     public float kP = .2f;
@@ -19,6 +19,8 @@ public class MoveBodyToTarget : MonoBehaviour {
     Vector3 integral = Vector3.zero;
 
     public bool pidEnabled = true;
+
+    public Rigidbody opposite = null; //all forces are also applied equally and opposite to this body (unless null)
 
     public bool useRelativeVelocity = false;
     public Rigidbody parentBody = null;
@@ -48,7 +50,8 @@ public class MoveBodyToTarget : MonoBehaviour {
             {
                 force.Normalize();
             }
-            body.AddForce(transform.TransformVector(force) * maxForce, ForceMode.VelocityChange);
+            body.AddForce(Vector3.Scale(transform.TransformVector(force), maxForce), ForceMode.VelocityChange);
+            opposite.AddForce(-Vector3.Scale(transform.TransformVector(force), maxForce) * (body.mass / opposite.mass), ForceMode.VelocityChange);
         }
 
         //limit max velocity
@@ -76,7 +79,6 @@ public class MoveBodyToTarget : MonoBehaviour {
 
     private void OnDrawGizmosSelected()
     {
-        if (targetPos == null) return;
         Gizmos.color = Color.yellow;
         Gizmos.DrawSphere(targetPos, .1f);
     }

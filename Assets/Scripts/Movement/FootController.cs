@@ -9,20 +9,24 @@ public class FootController : MonoBehaviour
     public float walkFriction = 10;
     public float landingGripForce = 5;
     public float gravity = 10f;
+    public float groundMassMultiplier = 10; //increases mass while on the ground, to improve grip.
 
     bool onGround = true;
-    public bool isColliding = false;
-    public bool wasOnGround = true;
+    bool isColliding = false;
+    bool wasOnGround = true;
     static float CASTRADIUS = .15f;
     public LayerMask castMask;
 
     MoveBodyToTarget pidController;
+
+    float startMass = 1;
 
     // Use this for initialization
     void Start()
     {
         body = GetComponent<Rigidbody>();
         pidController = GetComponent<MoveBodyToTarget>();
+        startMass = body.mass;
     }
 
     // Update is called once per frame
@@ -34,9 +38,9 @@ public class FootController : MonoBehaviour
     private void FixedUpdate()
     {
         RaycastHit hit;
-        if (Physics.BoxCast(transform.position + Vector3.up * .05f, new Vector3(CASTRADIUS, .01f, CASTRADIUS), Vector3.down, out hit, Quaternion.identity, .1f, castMask))
+        if (Physics.BoxCast(transform.position + Vector3.up * .1f, new Vector3(CASTRADIUS, .01f, CASTRADIUS), Vector3.down, out hit, Quaternion.identity, .2f, castMask))
         {
-            if (hit.normal.y > 0 && body.velocity.y <= 0)
+            if (hit.normal.y > 0 && body.velocity.y <= .01f)
             {
                 onGround = true;
             }
@@ -44,15 +48,17 @@ public class FootController : MonoBehaviour
 
         if (onGround && !pidController.pidEnabled)
         {
+            body.mass = startMass * groundMassMultiplier;
             //friction
             body.AddForce(accelToStop(new Vector3(0, body.velocity.y, 0), landingGripForce, Time.fixedDeltaTime) + 
                 accelToStop(new Vector3(body.velocity.x, 0, body.velocity.z), walkFriction, Time.fixedDeltaTime), ForceMode.VelocityChange);
         }
         else if(!pidController.pidEnabled)
         {
-            //gravity
-            body.AddForce(Vector3.down * gravity, ForceMode.Acceleration);
+            body.mass = startMass;
         }
+        //gravity
+        body.AddForce(Vector3.down * gravity, ForceMode.Acceleration);
         wasOnGround = onGround;
         onGround = false;
     }
