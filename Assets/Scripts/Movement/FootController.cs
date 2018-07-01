@@ -11,8 +11,10 @@ public class FootController : MonoBehaviour
     public float gravity = 10f;
 
     bool onGround = true;
+    public bool isColliding = false;
     public bool wasOnGround = true;
-    static float CASTRADIUS = .09f;
+    static float CASTRADIUS = .15f;
+    public LayerMask castMask;
 
     MoveBodyToTarget pidController;
 
@@ -31,6 +33,15 @@ public class FootController : MonoBehaviour
 
     private void FixedUpdate()
     {
+        RaycastHit hit;
+        if (Physics.BoxCast(transform.position + Vector3.up * .05f, new Vector3(CASTRADIUS, .01f, CASTRADIUS), Vector3.down, out hit, Quaternion.identity, .1f, castMask))
+        {
+            if (hit.normal.y > 0 && body.velocity.y <= 0)
+            {
+                onGround = true;
+            }
+        }
+
         if (onGround && !pidController.pidEnabled)
         {
             //friction
@@ -51,17 +62,19 @@ public class FootController : MonoBehaviour
         return wasOnGround;
     }
 
+    private void OnCollisionEnter(Collision collision)
+    {
+        isColliding = true;
+    }
+
+    private void OnCollisionExit(Collision collision)
+    {
+        isColliding = false;
+    }
+
     private void OnCollisionStay(Collision collision)
     {
-        RaycastHit rayHit;
-        if (Physics.SphereCast(transform.position, CASTRADIUS, -transform.up, out rayHit))
-        {
-            if (rayHit.normal.y > 0 && body.velocity.y <= 0)
-            {
-                onGround = true;
-            }
-        }
-
+        //this shit is unreliable and mostly useless.
     }
 
     //applies a velocity change until the velocity reaches zero;
