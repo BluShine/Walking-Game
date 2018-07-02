@@ -86,7 +86,7 @@ public class WalkingController : MonoBehaviour {
         //foot movement
         if(footDown && foot.isOnGround())
         {
-            body.AddForce((body.position - footBody.position).normalized * Mathf.Max(0, kickForce - footBody.velocity.y), ForceMode.VelocityChange);
+            body.AddForce((body.position - footBody.position).normalized * kickForce, ForceMode.VelocityChange);
             footBody.AddForce((body.position - footBody.position).normalized * liftForce, ForceMode.VelocityChange);
         }
         if (footUp)

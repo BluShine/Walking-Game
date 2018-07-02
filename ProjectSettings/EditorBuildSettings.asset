@@ -14,4 +14,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Pillars.unity
     guid: 3a2cd0b92fb8026468e46c1b13b795ab
+  - enabled: 1
+    path: Assets/Scenes/HillClimb.unity
+    guid: 8bd640606d53ff24883bb55524f14a80
   m_configObjects: {}
